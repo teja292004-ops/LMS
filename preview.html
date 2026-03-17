@@ -1,0 +1,782 @@
+.there <!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SkillBloom - Learn Without Limits</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+*{font-family:'Inter',sans-serif;box-sizing:border-box;}
+.page{display:none;}.page.active{display:block;}
+.dash-panel{display:none;}.dash-panel.active{display:block;}
+.detail-panel{display:none;}.detail-panel.active{display:block;}
+.sidebar-link{display:flex;align-items:center;gap:10px;padding:9px 14px;border-radius:8px;cursor:pointer;font-size:.85rem;color:#374151;transition:all .15s;white-space:nowrap;}
+.sidebar-link:hover,.sidebar-link.active{background:#ede9fe;color:#6d28d9;font-weight:600;}
+.card-hover{transition:all .25s;}.card-hover:hover{transform:translateY(-3px);box-shadow:0 12px 30px rgba(0,0,0,.12);}
+.gradient-text{background:linear-gradient(135deg,#6366f1,#a855f7,#ec4899);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+.chat-user{background:#4f46e5;color:#fff;border-radius:16px 16px 4px 16px;align-self:flex-end;}
+.chat-ai{background:#fff;color:#1f2937;border-radius:16px 16px 16px 4px;border:1px solid #e5e7eb;align-self:flex-start;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-up{animation:fadeUp .3s ease;}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.live-dot{animation:blink 1.2s infinite;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#c4b5fd;border-radius:4px;}
+#search-dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #e5e7eb;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,.12);z-index:999;max-height:320px;overflow-y:auto;display:none;}
+#search-dropdown.show{display:block;}
+.search-item:hover{background:#f5f3ff;}
+</style>
+</head>
+<body class="bg-gray-100">
+
+<!-- NAVBAR -->
+<nav class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+  <div class="max-w-7xl mx-auto px-4 flex items-center h-14 gap-3">
+    <div onclick="showPage('home')" class="flex items-center gap-2 cursor-pointer shrink-0">
+      <div class="w-9 h-9 bg-purple-700 rounded-lg flex items-center justify-center text-white font-black text-sm">SB</div>
+      <div class="hidden sm:block"><p class="text-xs font-black text-purple-800 leading-none">SkillBloom</p><p class="text-xs text-gray-400 leading-none">Learn Online</p></div>
+    </div>
+    <button onclick="showPage('catalog')" class="bg-purple-700 hover:bg-purple-800 text-white text-xs font-semibold px-4 py-2 rounded-md transition shrink-0">Courses ▾</button>
+    <!-- Search bar with live dropdown -->
+    <div class="flex-1 max-w-lg relative" id="search-wrap">
+      <div class="flex border border-gray-300 rounded-md overflow-visible">
+        <input id="nav-search" type="text" placeholder="Search courses..." autocomplete="off"
+          class="flex-1 px-3 py-2 text-sm focus:outline-none bg-white rounded-l-md"
+          oninput="liveSearch(this.value)" onkeydown="if(event.key==='Enter')doSearch()"/>
+        <button onclick="doSearch()" class="bg-gray-100 hover:bg-gray-200 px-3 border-l border-gray-300 text-gray-500 text-sm transition rounded-r-md">🔍</button>
+      </div>
+      <div id="search-dropdown"></div>
+    </div>
+    <!-- Guest nav -->
+    <div class="flex items-center gap-2 ml-auto text-sm" id="nav-guest">
+      <span onclick="showPage('login')" class="text-gray-600 hover:text-purple-700 cursor-pointer font-medium px-2">Sign In</span>
+      <button onclick="showPage('register')" class="bg-purple-700 hover:bg-purple-800 text-white font-semibold px-4 py-2 rounded-md transition text-xs">Sign Up</button>
+    </div>
+    <!-- User nav -->
+    <div class="hidden items-center gap-3 ml-auto" id="nav-user">
+      <span onclick="showPage('catalog')" class="text-gray-600 hover:text-purple-700 cursor-pointer text-sm font-medium">Courses</span>
+      <span onclick="showPage('dashboard')" class="text-gray-600 hover:text-purple-700 cursor-pointer text-sm font-medium">My Learning</span>
+      <div class="relative">
+        <button onclick="toggleUserMenu()" class="w-8 h-8 bg-purple-700 rounded-full flex items-center justify-center text-white font-bold text-sm">J</button>
+        <div id="user-menu" class="hidden absolute right-0 mt-2 w-44 bg-white rounded-xl shadow-lg border border-gray-100 py-2 text-sm z-50">
+          <div onclick="showPage('dashboard');toggleUserMenu()" class="px-4 py-2 hover:bg-gray-50 cursor-pointer">Dashboard</div>
+          <div onclick="showDash('profile');showPage('dashboard');toggleUserMenu()" class="px-4 py-2 hover:bg-gray-50 cursor-pointer">Profile</div>
+          <hr class="my-1 border-gray-100"/>
+          <div onclick="showPage('login');setGuest();toggleUserMenu()" class="px-4 py-2 hover:bg-gray-50 cursor-pointer text-red-500">Logout</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<!-- ===== HOME PAGE ===== -->
+<div id="page-home" class="page active">
+  <div class="bg-gradient-to-r from-gray-900 via-purple-950 to-gray-900 text-white py-16 px-4 relative overflow-hidden">
+    <div class="absolute inset-0" style="background:radial-gradient(ellipse at 60% 50%,rgba(109,40,217,.4) 0%,transparent 70%)"></div>
+    <div class="relative max-w-4xl mx-auto text-center">
+      <p class="text-purple-300 text-sm font-semibold mb-3">🌱 SkillBloom — Grow Your Skills Every Day</p>
+      <h1 class="text-4xl md:text-6xl font-black mb-4 leading-tight">Learn Without <span class="gradient-text">Limits</span></h1>
+      <p class="text-gray-300 mb-8 max-w-xl mx-auto">4 courses free for 3 days. No credit card needed. Join 10,000+ learners.</p>
+      <div class="flex max-w-xl mx-auto rounded-xl overflow-hidden shadow-xl border border-white/10">
+        <input type="text" id="hero-search" placeholder="What do you want to learn?" class="flex-1 px-5 py-3.5 text-gray-900 text-sm focus:outline-none" onkeydown="if(event.key==='Enter'){searchFromHero()}"/>
+        <button onclick="searchFromHero()" class="bg-purple-600 hover:bg-purple-700 px-6 text-sm font-semibold transition text-white">Search</button>
+      </div>
+      <p class="text-gray-500 text-xs mt-3">Popular: React, Python, ML, UI Design, Docker</p>
+    </div>
+  </div>
+  <div class="bg-purple-700 text-white py-6">
+    <div class="max-w-5xl mx-auto px-4 grid grid-cols-4 gap-4 text-center">
+      <div><p class="text-2xl font-black">10K+</p><p class="text-purple-200 text-xs mt-0.5">Students</p></div>
+      <div><p class="text-2xl font-black">500+</p><p class="text-purple-200 text-xs mt-0.5">Courses</p></div>
+      <div><p class="text-2xl font-black">200+</p><p class="text-purple-200 text-xs mt-0.5">Instructors</p></div>
+      <div><p class="text-2xl font-black">95%</p><p class="text-purple-200 text-xs mt-0.5">Satisfaction</p></div>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 pt-8">
+    <div class="bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-2xl p-5 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div><p class="text-xs font-bold uppercase text-green-100 mb-1">🎁 Limited Offer</p>
+        <h3 class="text-lg font-black">4 Courses — FREE for 3 Days!</h3>
+        <p class="text-green-100 text-sm">No credit card. Cancel anytime.</p></div>
+      <button onclick="showPage('catalog')" class="bg-white text-green-700 font-bold px-6 py-2.5 rounded-xl hover:bg-green-50 transition text-sm shrink-0">Claim Free Access →</button>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 py-8">
+    <h2 class="text-xl font-black text-gray-800 mb-4">Top Categories</h2>
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div onclick="filterAndGo('Web Dev')" class="bg-gradient-to-br from-blue-500 to-indigo-600 text-white rounded-xl p-4 text-center card-hover cursor-pointer"><div class="text-2xl mb-1">💻</div><p class="font-semibold text-xs">Web Development</p></div>
+      <div onclick="filterAndGo('Data Science')" class="bg-gradient-to-br from-green-500 to-teal-600 text-white rounded-xl p-4 text-center card-hover cursor-pointer"><div class="text-2xl mb-1">📊</div><p class="font-semibold text-xs">Data Science</p></div>
+      <div onclick="filterAndGo('Design')" class="bg-gradient-to-br from-pink-500 to-rose-600 text-white rounded-xl p-4 text-center card-hover cursor-pointer"><div class="text-2xl mb-1">🎨</div><p class="font-semibold text-xs">UI/UX Design</p></div>
+      <div onclick="filterAndGo('AI & ML')" class="bg-gradient-to-br from-purple-500 to-violet-600 text-white rounded-xl p-4 text-center card-hover cursor-pointer"><div class="text-2xl mb-1">🤖</div><p class="font-semibold text-xs">Machine Learning</p></div>
+      <div onclick="filterAndGo('Business')" class="bg-gradient-to-br from-orange-500 to-amber-600 text-white rounded-xl p-4 text-center card-hover cursor-pointer"><div class="text-2xl mb-1">📈</div><p class="font-semibold text-xs">Business</p></div>
+      <div onclick="filterAndGo('DevOps')" class="bg-gradient-to-br from-cyan-500 to-sky-600 text-white rounded-xl p-4 text-center card-hover cursor-pointer"><div class="text-2xl mb-1">⚙️</div><p class="font-semibold text-xs">DevOps</p></div>
+      <div onclick="filterAndGo('Mobile Dev')" class="bg-gradient-to-br from-red-500 to-pink-600 text-white rounded-xl p-4 text-center card-hover cursor-pointer"><div class="text-2xl mb-1">📱</div><p class="font-semibold text-xs">Mobile Dev</p></div>
+      <div onclick="filterAndGo('Cybersecurity')" class="bg-gradient-to-br from-lime-500 to-green-600 text-white rounded-xl p-4 text-center card-hover cursor-pointer"><div class="text-2xl mb-1">🔐</div><p class="font-semibold text-xs">Cybersecurity</p></div>
+    </div>
+  </div>
+  <div class="max-w-7xl mx-auto px-4 pb-12">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="text-xl font-black text-gray-800">Featured Courses</h2>
+      <button onclick="showPage('catalog')" class="text-purple-700 text-sm font-semibold hover:underline">View All →</button>
+    </div>
+    <div id="home-courses" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+  </div>
+  <div class="mx-4 mb-12 rounded-2xl bg-gradient-to-r from-purple-700 via-indigo-700 to-purple-800 text-white py-12 px-8 text-center">
+    <h2 class="text-2xl font-black mb-2">Become an Instructor on SkillBloom</h2>
+    <p class="text-purple-200 mb-6 max-w-lg mx-auto text-sm">Share your expertise with millions of learners and earn money doing what you love.</p>
+    <button onclick="showPage('register')" class="bg-white text-purple-700 font-bold px-8 py-3 rounded-xl hover:bg-purple-50 transition text-sm">Start Teaching Today →</button>
+  </div>
+</div>
+
+<!-- ===== CATALOG PAGE ===== -->
+<div id="page-catalog" class="page">
+  <div class="flex min-h-screen bg-gray-100">
+    <div class="w-56 bg-white border-r border-gray-200 shrink-0 hidden md:block">
+      <div class="p-4">
+        <div class="bg-purple-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center justify-between mb-3 cursor-pointer">
+          <span>Parent Categories</span><span>⊕</span>
+        </div>
+        <div class="space-y-0.5 mb-4 text-xs text-gray-600">
+          <div onclick="filterCourses('All')" class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">Minor Degree <span>⊕</span></div>
+          <div onclick="filterCourses('All')" class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">Honour Degree <span>⊕</span></div>
+          <div onclick="filterCourses('All')" class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">Skill Enhancement <span>⊕</span></div>
+          <div onclick="filterCourses('All')" class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">Consortium Courses <span>⊕</span></div>
+        </div>
+        <div class="bg-purple-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center justify-between mb-3 cursor-pointer">
+          <span>Categories</span><span>⊕</span>
+        </div>
+        <div class="space-y-0.5 mb-4 text-xs text-gray-600">
+          <div onclick="filterCourses('All')" class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">MOOC Resources <span>⊕</span></div>
+          <div onclick="filterCourses('All')" class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">E-Learning <span>⊕</span></div>
+          <div onclick="filterCourses('All')" class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">Certificate Course <span>⊕</span></div>
+          <div onclick="filterCourses('All')" class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">Skill Enhancement <span>⊕</span></div>
+        </div>
+        <div class="bg-purple-700 text-white text-xs font-bold px-3 py-2 rounded-lg flex items-center justify-between mb-3 cursor-pointer">
+          <span>Companies</span><span>⊕</span>
+        </div>
+        <div class="space-y-0.5 text-xs text-gray-600">
+          <div class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">Edushine India <span>⊕</span></div>
+          <div class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">Cyberverse Foundation <span>⊕</span></div>
+          <div class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">L&T Edutech <span>⊕</span></div>
+          <div class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">TCS iON <span>⊕</span></div>
+          <div class="flex items-center justify-between py-1.5 px-2 hover:bg-purple-50 hover:text-purple-700 rounded cursor-pointer">Infosys <span>⊕</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 p-5">
+      <div class="flex flex-wrap items-center gap-2 mb-4 text-xs text-gray-500">
+        <span class="font-medium">People Also Search:</span>
+        <span onclick="filterCourses('All')" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full cursor-pointer hover:bg-purple-200 font-medium">Certificate Course</span>
+        <span onclick="filterCourses('All')" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full cursor-pointer hover:bg-purple-200 font-medium">Skill Enhancement</span>
+        <span onclick="filterCourses('All')" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full cursor-pointer hover:bg-purple-200 font-medium">Minor Degree</span>
+        <span onclick="filterCourses('All')" class="bg-purple-100 text-purple-700 px-3 py-1 rounded-full cursor-pointer hover:bg-purple-200 font-medium">E-Learning</span>
+        <span class="ml-auto text-gray-400">Sort By: Default ▾</span>
+      </div>
+      <div class="flex flex-wrap items-center gap-2 mb-5 text-xs">
+        <button class="border border-gray-300 px-3 py-1.5 rounded-md text-gray-600 hover:bg-gray-50">⚙ Filter</button>
+        <span class="text-gray-500" id="catalog-count">16 courses</span>
+        <div class="flex gap-1 ml-auto flex-wrap">
+          <button onclick="filterCourses('All')" class="filter-tab bg-purple-700 text-white px-3 py-1.5 rounded-md text-xs font-medium">All</button>
+          <button onclick="filterCourses('Web Dev')" class="filter-tab bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-md text-xs hover:bg-gray-50">Web Dev</button>
+          <button onclick="filterCourses('Data Science')" class="filter-tab bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-md text-xs hover:bg-gray-50">Data</button>
+          <button onclick="filterCourses('AI & ML')" class="filter-tab bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-md text-xs hover:bg-gray-50">AI/ML</button>
+          <button onclick="filterCourses('Design')" class="filter-tab bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-md text-xs hover:bg-gray-50">Design</button>
+          <button onclick="filterCourses('DevOps')" class="filter-tab bg-white border border-gray-200 text-gray-600 px-3 py-1.5 rounded-md text-xs hover:bg-gray-50">DevOps</button>
+        </div>
+      </div>
+      <div id="catalog-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAYMENT POPUP ===== -->
+<div id="trial-popup" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4" style="background:rgba(0,0,0,.75)">
+  <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md p-7 relative fade-up">
+    <button onclick="closePopup()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-700 text-xl font-bold">✕</button>
+    <div id="popup-free">
+      <div class="text-center mb-5"><div class="text-5xl mb-2">🎉</div>
+        <h2 class="text-xl font-black text-gray-900">3-Day Free Trial!</h2>
+        <p class="text-gray-500 text-sm mt-1">Full access for <span class="text-green-600 font-bold">3 days free</span>. No credit card.</p>
+      </div>
+      <div class="grid grid-cols-3 gap-2 mb-5">
+        <div class="bg-green-50 rounded-xl p-3 text-center"><div class="text-xl">📚</div><p class="text-xs font-semibold text-gray-700 mt-1">All Lessons</p></div>
+        <div class="bg-green-50 rounded-xl p-3 text-center"><div class="text-xl">🎥</div><p class="text-xs font-semibold text-gray-700 mt-1">Live Classes</p></div>
+        <div class="bg-green-50 rounded-xl p-3 text-center"><div class="text-xl">🎓</div><p class="text-xs font-semibold text-gray-700 mt-1">TutorAI</p></div>
+      </div>
+      <div class="bg-gray-50 rounded-xl p-4 mb-5 space-y-2">
+        <p class="text-xs font-bold text-gray-400 uppercase mb-2">After trial — choose plan</p>
+        <label class="flex items-center justify-between bg-white border-2 border-purple-500 rounded-xl px-4 py-3 cursor-pointer">
+          <div><p class="text-sm font-bold">Monthly</p><p class="text-xs text-gray-400">Billed monthly</p></div>
+          <p class="text-lg font-black text-purple-700">₹1,499<span class="text-xs font-normal">/mo</span></p>
+        </label>
+        <label class="flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 cursor-pointer hover:border-purple-300">
+          <div><p class="text-sm font-bold">Yearly <span class="text-xs bg-green-100 text-green-600 px-1.5 py-0.5 rounded-full ml-1">Save 50%</span></p><p class="text-xs text-gray-400">Billed annually</p></div>
+          <div class="text-right"><p class="text-lg font-black text-purple-700">₹749<span class="text-xs font-normal">/mo</span></p><p class="text-xs text-gray-400 line-through">₹1,499</p></div>
+        </label>
+      </div>
+      <button onclick="startTrial()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm transition">🚀 Start My 3-Day Free Trial</button>
+      <p class="text-xs text-gray-400 text-center mt-2">Cancel anytime. No charges for 3 days.</p>
+    </div>
+    <div id="popup-paid" class="hidden">
+      <div class="text-center mb-5"><div class="text-5xl mb-2">💳</div>
+        <h2 class="text-xl font-black text-gray-900">Enroll in this Course</h2>
+        <p class="text-gray-500 text-sm mt-1">One-time payment. Lifetime access.</p>
+      </div>
+      <div class="bg-purple-50 rounded-xl p-4 mb-5">
+        <p class="font-bold text-gray-800 text-sm mb-2" id="popup-course-title">Course Title</p>
+        <div class="flex items-center gap-2">
+          <p class="text-2xl font-black text-purple-700" id="popup-price">₹1,250</p>
+          <p class="text-sm text-gray-400 line-through" id="popup-original">₹2,500</p>
+          <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">50% OFF</span>
+        </div>
+      </div>
+      <div class="space-y-1.5 mb-5 text-sm text-gray-600">
+        <div class="flex items-center gap-2"><span class="text-green-500">✅</span> Lifetime access + Certificate</div>
+        <div class="flex items-center gap-2"><span class="text-green-500">✅</span> TutorAI + Live classes</div>
+        <div class="flex items-center gap-2"><span class="text-green-500">✅</span> Watch on YouTube</div>
+      </div>
+      <button onclick="buyNow()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm transition mb-2">Buy Now & Enroll</button>
+      <button onclick="closePopup()" class="w-full border border-gray-200 text-gray-500 py-2.5 rounded-xl text-sm hover:bg-gray-50">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COURSE DETAIL ===== -->
+<div id="page-course-detail" class="page">
+  <div class="bg-gray-900 text-white py-10 px-4">
+    <div class="max-w-5xl mx-auto flex flex-col md:flex-row gap-8">
+      <div class="flex-1">
+        <div class="flex items-center gap-2 mb-3">
+          <span id="cd-badge" class="bg-yellow-400 text-yellow-900 text-xs font-bold px-2.5 py-1 rounded-full">Bestseller</span>
+          <span id="cd-free-tag" class="hidden bg-green-500 text-white text-xs font-bold px-2.5 py-1 rounded-full">🎁 Free 3-Day Trial</span>
+        </div>
+        <h1 id="cd-title" class="text-2xl font-bold mb-3">Course Title</h1>
+        <p id="cd-desc" class="text-gray-300 mb-4 text-sm">Description</p>
+        <p class="text-sm text-gray-400">By <span id="cd-instructor" class="text-purple-400 font-medium">Instructor</span></p>
+        <div class="flex flex-wrap gap-4 mt-3 text-sm text-gray-300">
+          <span>⭐ <span id="cd-rating">4.9</span></span>
+          <span>👥 <span id="cd-students">24K</span> students</span>
+          <span>📚 <span id="cd-lessons">12</span> lessons</span>
+        </div>
+      </div>
+      <div class="w-full md:w-72 bg-white text-gray-800 rounded-2xl p-5 shadow-2xl self-start">
+        <img id="cd-img" src="" class="w-full rounded-xl mb-4 h-36 object-cover"/>
+        <div id="cd-price-section">
+          <div class="flex items-center gap-2 mb-1">
+            <p id="cd-price-display" class="text-2xl font-black text-gray-900">₹1,250</p>
+            <span id="cd-orig-display" class="text-sm text-gray-400 line-through">₹2,500</span>
+            <span class="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">50% OFF</span>
+          </div>
+          <p class="text-xs text-orange-500 font-semibold mb-3">⏰ <span id="offer-timer">2d 14:32:10</span> left!</p>
+        </div>
+        <div id="cd-free-section" class="hidden mb-3">
+          <div class="bg-green-50 border border-green-200 rounded-xl p-3 text-center">
+            <p class="text-green-700 font-bold text-sm">🎁 FREE for 3 Days</p>
+            <p class="text-green-600 text-xs">No credit card required</p>
+          </div>
+        </div>
+        <button id="cd-enroll-btn" onclick="handleEnroll()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl mb-3 transition">Enroll Now</button>
+        <div class="space-y-1 text-xs text-gray-600">
+          <div>✅ Lifetime access</div><div>✅ Certificate</div><div>✅ TutorAI</div><div>✅ Live classes</div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="border-b border-gray-200 bg-white sticky top-14 z-10">
+    <div class="max-w-5xl mx-auto px-4 flex gap-6 text-sm">
+      <button onclick="detailTab('content',this)" class="detail-tab-btn py-3 border-b-2 border-purple-700 text-purple-700 font-semibold">Content</button>
+      <button onclick="detailTab('live',this)" class="detail-tab-btn py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700">Live Classes</button>
+      <button onclick="detailTab('about',this)" class="detail-tab-btn py-3 border-b-2 border-transparent text-gray-500 hover:text-gray-700">About</button>
+    </div>
+  </div>
+  <div class="max-w-5xl mx-auto px-4 py-6">
+    <div id="detail-content" class="detail-panel active">
+      <h2 class="text-lg font-bold text-gray-800 mb-4">Course Content</h2>
+      <div id="lesson-list" class="border border-gray-200 rounded-xl overflow-hidden"></div>
+    </div>
+    <div id="detail-live" class="detail-panel">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-bold text-gray-800">Live Classes</h2>
+        <span class="bg-red-100 text-red-600 text-xs font-bold px-3 py-1 rounded-full"><span class="live-dot inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>LIVE NOW</span>
+      </div>
+      <div class="bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-2xl p-5 mb-5 flex items-center gap-4">
+        <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-xl shrink-0">🎥</div>
+        <div class="flex-1"><p class="font-bold text-sm">JavaScript ES6+ Deep Dive — Live Q&A</p><p class="text-xs text-red-100">John Smith • 342 watching</p></div>
+        <button onclick="window.open('https://www.youtube.com/watch?v=jS4aFq5-91M','_blank')" class="bg-white text-red-600 font-bold px-4 py-2 rounded-xl text-xs shrink-0">Join →</button>
+      </div>
+      <div class="space-y-3">
+        <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-3"><div class="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-lg shrink-0">⚛️</div><div class="flex-1"><p class="font-semibold text-sm">React Advanced Patterns</p><p class="text-xs text-gray-500">Tomorrow, 6:00 PM IST</p></div><button onclick="handleEnroll()" class="bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">RSVP</button></div>
+        <div class="bg-white border border-gray-200 rounded-xl p-4 flex items-center gap-3"><div class="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center text-lg shrink-0">🗄️</div><div class="flex-1"><p class="font-semibold text-sm">Node.js & MongoDB Live Build</p><p class="text-xs text-gray-500">Mar 20, 7:00 PM IST</p></div><button onclick="handleEnroll()" class="bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">RSVP</button></div>
+      </div>
+    </div>
+    <div id="detail-about" class="detail-panel">
+      <h2 class="text-lg font-bold text-gray-800 mb-3">About This Course</h2>
+      <p id="detail-about-text" class="text-gray-600 text-sm leading-relaxed mb-4">This comprehensive course covers everything from basics to advanced topics.</p>
+      <div class="grid grid-cols-2 gap-2 text-sm text-gray-700">
+        <div class="flex gap-2"><span class="text-green-500">✓</span> Build real projects</div>
+        <div class="flex gap-2"><span class="text-green-500">✓</span> Industry best practices</div>
+        <div class="flex gap-2"><span class="text-green-500">✓</span> Certificate included</div>
+        <div class="flex gap-2"><span class="text-green-500">✓</span> Lifetime access</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== DASHBOARD ===== -->
+<div id="page-dashboard" class="page">
+  <div class="relative bg-gradient-to-r from-gray-900 via-purple-950 to-gray-900 text-white py-10 px-4 overflow-hidden">
+    <div class="absolute inset-0" style="background:radial-gradient(ellipse at 70% 50%,rgba(109,40,217,.5) 0%,transparent 65%)"></div>
+    <div class="relative text-center">
+      <h1 class="text-3xl font-black mb-1">Hey, Jane Doe 👋</h1>
+      <p class="text-purple-300 text-sm">Home / <span class="text-white font-semibold cursor-pointer" onclick="showDash('overview')">Dashboard</span></p>
+    </div>
+  </div>
+  <div class="max-w-6xl mx-auto px-4 py-6 flex gap-5">
+    <!-- Sidebar -->
+    <div class="w-48 shrink-0 hidden md:block">
+      <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-2">
+        <div onclick="showDash('overview')" id="sl-overview" class="sidebar-link active">🏠 Dashboard</div>
+        <div onclick="showDash('application')" id="sl-application" class="sidebar-link">📋 My Application</div>
+        <div onclick="showDash('learning')" id="sl-learning" class="sidebar-link">📚 My Learning</div>
+        <div onclick="showDash('exam')" id="sl-exam" class="sidebar-link">📝 Exam</div>
+        <div onclick="showDash('wishlist')" id="sl-wishlist" class="sidebar-link">❤️ Wishlist</div>
+        <div onclick="showDash('cart')" id="sl-cart" class="sidebar-link">🛒 Cart</div>
+        <div onclick="showDash('profile')" id="sl-profile" class="sidebar-link">⚙️ Profile Settings</div>
+        <div onclick="showDash('help')" id="sl-help" class="sidebar-link">❓ Help Support</div>
+        <div onclick="showDash('notifications')" id="sl-notifications" class="sidebar-link">🔔 Notifications</div>
+        <hr class="my-2 border-gray-100"/>
+        <div onclick="showPage('login');setGuest()" class="sidebar-link text-red-500 hover:bg-red-50">↩ Logout</div>
+      </div>
+    </div>
+    <!-- Mobile tabs -->
+    <div class="md:hidden w-full mb-4 overflow-x-auto">
+      <div class="flex gap-2 pb-2 min-w-max">
+        <button onclick="showDash('overview')" class="bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">🏠 Home</button>
+        <button onclick="showDash('application')" class="bg-white border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-lg">📋 Apps</button>
+        <button onclick="showDash('learning')" class="bg-white border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-lg">📚 Learn</button>
+        <button onclick="showDash('exam')" class="bg-white border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-lg">📝 Exam</button>
+        <button onclick="showDash('profile')" class="bg-white border border-gray-200 text-gray-600 text-xs px-3 py-1.5 rounded-lg">⚙️ Profile</button>
+      </div>
+    </div>
+    <!-- Main panels -->
+    <div class="flex-1 min-w-0">
+      <!-- OVERVIEW -->
+      <div id="dash-overview" class="dash-panel active fade-up">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div class="lg:col-span-2 space-y-5">
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5 flex items-center gap-4 relative overflow-hidden">
+              <div class="absolute right-0 top-0 w-28 h-28 rounded-full" style="background:radial-gradient(circle,#7c3aed,transparent);opacity:.15"></div>
+              <div class="w-14 h-14 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-xl shrink-0">J</div>
+              <div class="flex-1">
+                <h2 class="font-black text-gray-900 text-base">Jane Doe</h2>
+                <div class="mt-2 space-y-1 text-xs text-gray-500">
+                  <div class="flex items-center gap-2">📞 <span>+91 98765 43210</span></div>
+                  <div class="flex items-center gap-2">✉️ <span>jane@skillbloom.com</span></div>
+                  <div class="flex items-center gap-2">📍 <span>Bengaluru, Karnataka</span></div>
+                </div>
+              </div>
+              <button onclick="showDash('profile')" class="text-xs text-purple-700 font-semibold border border-purple-200 px-3 py-1.5 rounded-lg hover:bg-purple-50 shrink-0">Edit Profile</button>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-gray-800 text-sm">Start from where you left</h3>
+                <button onclick="showDash('learning')" class="text-purple-700 text-xs font-semibold hover:underline">View All</button>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div onclick="showPage('player')" class="border border-gray-100 rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition">
+                  <img src="https://images.unsplash.com/photo-1593720213428-28a5b9e94613?w=400&h=100&fit=crop" class="w-full h-24 object-cover"/>
+                  <div class="p-3"><p class="font-semibold text-xs text-gray-800">Web Development Bootcamp</p>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 my-1.5"><div class="bg-purple-600 h-1.5 rounded-full" style="width:50%"></div></div>
+                    <div class="flex justify-between text-xs text-gray-400"><span>50%</span><span class="text-purple-600 font-semibold">Continue →</span></div>
+                  </div>
+                </div>
+                <div onclick="showPage('player')" class="border border-gray-100 rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition">
+                  <img src="https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=400&h=100&fit=crop" class="w-full h-24 object-cover"/>
+                  <div class="p-3"><p class="font-semibold text-xs text-gray-800">Python for Data Science</p>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5 my-1.5"><div class="bg-purple-600 h-1.5 rounded-full" style="width:33%"></div></div>
+                    <div class="flex justify-between text-xs text-gray-400"><span>33%</span><span class="text-purple-600 font-semibold">Continue →</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-gray-800 text-sm">Popular Courses</h3>
+                <button onclick="showPage('catalog')" class="text-purple-700 text-xs font-semibold hover:underline">View All</button>
+              </div>
+              <div class="space-y-3">
+                <div onclick="openCourse(5)" class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl p-2 transition">
+                  <img src="https://images.unsplash.com/photo-1555949963-ff9fe0c870eb?w=60&h=60&fit=crop" class="w-10 h-10 rounded-lg object-cover shrink-0"/>
+                  <div class="flex-1 min-w-0"><p class="text-xs font-semibold text-gray-800 truncate">Machine Learning A-Z</p><p class="text-xs text-gray-400">Edushine India</p></div>
+                  <p class="text-xs font-bold text-purple-700 shrink-0">₹1,250</p>
+                </div>
+                <div onclick="openCourse(6)" class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl p-2 transition">
+                  <img src="https://images.unsplash.com/photo-1633356122544-f134324a6cee?w=60&h=60&fit=crop" class="w-10 h-10 rounded-lg object-cover shrink-0"/>
+                  <div class="flex-1 min-w-0"><p class="text-xs font-semibold text-gray-800 truncate">React Full Stack Developer</p><p class="text-xs text-gray-400">Edushine India</p></div>
+                  <p class="text-xs font-bold text-purple-700 shrink-0">₹1,499</p>
+                </div>
+                <div onclick="openCourse(11)" class="flex items-center gap-3 cursor-pointer hover:bg-gray-50 rounded-xl p-2 transition">
+                  <img src="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=60&h=60&fit=crop" class="w-10 h-10 rounded-lg object-cover shrink-0"/>
+                  <div class="flex-1 min-w-0"><p class="text-xs font-semibold text-gray-800 truncate">AWS Cloud Practitioner</p><p class="text-xs text-gray-400">Edushine India</p></div>
+                  <p class="text-xs font-bold text-purple-700 shrink-0">₹1,799</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="space-y-5">
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4 grid grid-cols-2 gap-3">
+              <div class="bg-purple-50 rounded-xl p-3 text-center"><p class="text-xl font-black text-purple-700">3</p><p class="text-xs text-gray-500 mt-0.5">Enrolled</p></div>
+              <div class="bg-green-50 rounded-xl p-3 text-center"><p class="text-xl font-black text-green-600">1</p><p class="text-xs text-gray-500 mt-0.5">Completed</p></div>
+              <div class="bg-indigo-50 rounded-xl p-3 text-center"><p class="text-xl font-black text-indigo-600">2</p><p class="text-xs text-gray-500 mt-0.5">Certificates</p></div>
+              <div class="bg-orange-50 rounded-xl p-3 text-center"><p class="text-xl font-black text-orange-500">42h</p><p class="text-xs text-gray-500 mt-0.5">Learned</p></div>
+            </div>
+            <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+              <div class="flex items-center justify-between mb-3">
+                <h3 class="font-bold text-gray-800 text-sm">Notifications</h3>
+                <button onclick="showDash('notifications')" class="text-purple-700 text-xs font-semibold hover:underline">View All</button>
+              </div>
+              <div class="space-y-3">
+                <div class="flex items-start gap-3"><div class="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-xs shrink-0">👤</div><div><p class="text-xs font-medium text-gray-800">Administration</p><p class="text-xs text-gray-400">New course published</p></div><span class="text-xs text-gray-400 shrink-0">1mo</span></div>
+                <div class="flex items-start gap-3"><div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center text-xs shrink-0">🎉</div><div><p class="text-xs font-medium text-gray-800">Lesson Completed!</p><p class="text-xs text-gray-400">You finished Lesson 6</p></div><span class="text-xs text-gray-400 shrink-0">2d</span></div>
+                <div class="flex items-start gap-3"><div class="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center text-xs shrink-0">🔴</div><div><p class="text-xs font-medium text-gray-800">Live class in 1 hour</p><p class="text-xs text-gray-400">JS Deep Dive</p></div><span class="text-xs text-gray-400 shrink-0">Today</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY APPLICATION -->
+      <div id="dash-application" class="dash-panel fade-up">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h2 class="font-black text-gray-800 text-base mb-4">📋 My Applications</h2>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm">
+              <thead><tr class="bg-purple-50 text-purple-700 text-xs font-bold"><th class="px-4 py-3 text-left rounded-l-lg">Course</th><th class="px-4 py-3 text-left">Category</th><th class="px-4 py-3 text-left">Applied On</th><th class="px-4 py-3 text-left">Status</th><th class="px-4 py-3 text-left rounded-r-lg">Action</th></tr></thead>
+              <tbody class="divide-y divide-gray-50">
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-800">Web Development Bootcamp</td><td class="px-4 py-3 text-gray-500 text-xs">Certificate</td><td class="px-4 py-3 text-gray-500 text-xs">Jan 10, 2026</td><td class="px-4 py-3"><span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full">Approved</span></td><td class="px-4 py-3"><button onclick="showPage('player')" class="text-purple-700 text-xs font-semibold hover:underline">Continue →</button></td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-800">Python for Data Science</td><td class="px-4 py-3 text-gray-500 text-xs">E-Learning</td><td class="px-4 py-3 text-gray-500 text-xs">Feb 3, 2026</td><td class="px-4 py-3"><span class="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded-full">Approved</span></td><td class="px-4 py-3"><button onclick="showPage('player')" class="text-purple-700 text-xs font-semibold hover:underline">Continue →</button></td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-800">Machine Learning A-Z</td><td class="px-4 py-3 text-gray-500 text-xs">Skill Enhancement</td><td class="px-4 py-3 text-gray-500 text-xs">Mar 1, 2026</td><td class="px-4 py-3"><span class="bg-yellow-100 text-yellow-700 text-xs font-bold px-2 py-1 rounded-full">Pending</span></td><td class="px-4 py-3"><span class="text-gray-400 text-xs">Awaiting</span></td></tr>
+                <tr class="hover:bg-gray-50"><td class="px-4 py-3 font-medium text-gray-800">React Full Stack Dev</td><td class="px-4 py-3 text-gray-500 text-xs">Certificate</td><td class="px-4 py-3 text-gray-500 text-xs">Mar 10, 2026</td><td class="px-4 py-3"><span class="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded-full">Under Review</span></td><td class="px-4 py-3"><span class="text-gray-400 text-xs">Awaiting</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- MY LEARNING -->
+      <div id="dash-learning" class="dash-panel fade-up">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h2 class="font-black text-gray-800 text-base mb-4">📚 My Learning</h2>
+          <div class="space-y-4">
+            <div class="border border-gray-100 rounded-xl p-4 flex gap-4 items-center hover:shadow-md transition">
+              <img src="https://images.unsplash.com/photo-1593720213428-28a5b9e94613?w=80&h=60&fit=crop" class="w-20 h-14 rounded-lg object-cover shrink-0"/>
+              <div class="flex-1 min-w-0"><p class="font-bold text-sm text-gray-800">Web Development Bootcamp</p><p class="text-xs text-gray-400 mb-2">By John Smith • 12 lessons</p>
+                <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-purple-600 h-2 rounded-full" style="width:50%"></div></div>
+                <div class="flex justify-between text-xs text-gray-400 mt-1"><span>6/12 lessons</span><span class="text-purple-600 font-semibold">50%</span></div>
+              </div>
+              <button onclick="showPage('player')" class="bg-purple-700 text-white text-xs font-bold px-4 py-2 rounded-lg shrink-0 hover:bg-purple-800 transition">Continue</button>
+            </div>
+            <div class="border border-gray-100 rounded-xl p-4 flex gap-4 items-center hover:shadow-md transition">
+              <img src="https://images.unsplash.com/photo-1526379095098-d400fd0bf935?w=80&h=60&fit=crop" class="w-20 h-14 rounded-lg object-cover shrink-0"/>
+              <div class="flex-1 min-w-0"><p class="font-bold text-sm text-gray-800">Python for Data Science</p><p class="text-xs text-gray-400 mb-2">By Sarah Johnson • 15 lessons</p>
+                <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-green-500 h-2 rounded-full" style="width:33%"></div></div>
+                <div class="flex justify-between text-xs text-gray-400 mt-1"><span>5/15 lessons</span><span class="text-green-600 font-semibold">33%</span></div>
+              </div>
+              <button onclick="showPage('player')" class="bg-purple-700 text-white text-xs font-bold px-4 py-2 rounded-lg shrink-0 hover:bg-purple-800 transition">Continue</button>
+            </div>
+            <div class="border border-gray-100 rounded-xl p-4 flex gap-4 items-center hover:shadow-md transition">
+              <img src="https://images.unsplash.com/photo-1677442135703-1787eea5ce01?w=80&h=60&fit=crop" class="w-20 h-14 rounded-lg object-cover shrink-0"/>
+              <div class="flex-1 min-w-0"><p class="font-bold text-sm text-gray-800">Machine Learning A-Z</p><p class="text-xs text-gray-400 mb-2">By Dr. Priya Nair • 20 lessons</p>
+                <div class="w-full bg-gray-200 rounded-full h-2"><div class="bg-blue-500 h-2 rounded-full" style="width:100%"></div></div>
+                <div class="flex justify-between text-xs text-gray-400 mt-1"><span>20/20 lessons</span><span class="text-blue-600 font-semibold">✅ Completed</span></div>
+              </div>
+              <button class="bg-green-600 text-white text-xs font-bold px-4 py-2 rounded-lg shrink-0">Certificate</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EXAM -->
+      <div id="dash-exam" class="dash-panel fade-up">
+        <div class="space-y-5">
+          <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+            <h2 class="font-black text-gray-800 text-base mb-4">📝 Upcoming Exams</h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+              <div class="bg-gradient-to-br from-purple-600 to-indigo-700 text-white rounded-xl p-4">
+                <p class="text-xs font-bold text-purple-200 mb-1">UPCOMING</p>
+                <p class="font-black text-sm mb-1">Web Dev Final Exam</p>
+                <p class="text-xs text-purple-200">📅 March 20, 2026 • 10:00 AM IST</p>
+                <p class="text-xs text-purple-200 mt-1">⏱ Duration: 90 minutes</p>
+                <button class="mt-3 bg-white text-purple-700 text-xs font-bold px-4 py-1.5 rounded-lg hover:bg-purple-50 transition">Prepare Now</button>
+              </div>
+              <div class="bg-gradient-to-br from-orange-500 to-red-600 text-white rounded-xl p-4">
+                <p class="text-xs font-bold text-orange-200 mb-1">SCHEDULED</p>
+                <p class="font-black text-sm mb-1">Python Mid-Term Quiz</p>
+                <p class="text-xs text-orange-200">📅 March 25, 2026 • 2:00 PM IST</p>
+                <p class="text-xs text-orange-200 mt-1">⏱ Duration: 45 minutes</p>
+                <button class="mt-3 bg-white text-orange-700 text-xs font-bold px-4 py-1.5 rounded-lg hover:bg-orange-50 transition">View Syllabus</button>
+              </div>
+            </div>
+            <h3 class="font-bold text-gray-700 text-sm mb-3">Exam History</h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-xs">
+                <thead><tr class="bg-gray-50 text-gray-500 font-bold"><th class="px-3 py-2 text-left">Exam</th><th class="px-3 py-2 text-left">Date</th><th class="px-3 py-2 text-left">Score</th><th class="px-3 py-2 text-left">Status</th></tr></thead>
+                <tbody class="divide-y divide-gray-50">
+                  <tr class="hover:bg-gray-50"><td class="px-3 py-2 font-medium text-gray-800">ML Basics Quiz</td><td class="px-3 py-2 text-gray-500">Feb 15, 2026</td><td class="px-3 py-2 font-bold text-green-600">88/100</td><td class="px-3 py-2"><span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">Passed</span></td></tr>
+                  <tr class="hover:bg-gray-50"><td class="px-3 py-2 font-medium text-gray-800">HTML/CSS Test</td><td class="px-3 py-2 text-gray-500">Jan 28, 2026</td><td class="px-3 py-2 font-bold text-green-600">95/100</td><td class="px-3 py-2"><span class="bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-full">Passed</span></td></tr>
+                  <tr class="hover:bg-gray-50"><td class="px-3 py-2 font-medium text-gray-800">Python Basics</td><td class="px-3 py-2 text-gray-500">Jan 10, 2026</td><td class="px-3 py-2 font-bold text-yellow-600">62/100</td><td class="px-3 py-2"><span class="bg-yellow-100 text-yellow-700 font-bold px-2 py-0.5 rounded-full">Borderline</span></td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WISHLIST -->
+      <div id="dash-wishlist" class="dash-panel fade-up">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h2 class="font-black text-gray-800 text-base mb-4">❤️ Wishlist</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="border border-gray-100 rounded-xl overflow-hidden card-hover cursor-pointer" onclick="openCourse(7)">
+              <img src="https://images.unsplash.com/photo-1605745341112-85968b19335b?w=400&h=120&fit=crop" class="w-full h-28 object-cover"/>
+              <div class="p-3"><p class="font-bold text-xs text-gray-800 mb-1">Docker & Kubernetes</p><p class="text-xs text-gray-400 mb-2">By Alex Kumar</p>
+                <div class="flex items-center justify-between"><span class="text-purple-700 font-black text-sm">₹1,399</span><button onclick="event.stopPropagation();handleEnrollById(7)" class="bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Enroll</button></div>
+              </div>
+            </div>
+            <div class="border border-gray-100 rounded-xl overflow-hidden card-hover cursor-pointer" onclick="openCourse(8)">
+              <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=400&h=120&fit=crop" class="w-full h-28 object-cover"/>
+              <div class="p-3"><p class="font-bold text-xs text-gray-800 mb-1">Data Analytics with Power BI</p><p class="text-xs text-gray-400 mb-2">By Meera Iyer</p>
+                <div class="flex items-center justify-between"><span class="text-purple-700 font-black text-sm">₹1,299</span><button onclick="event.stopPropagation();handleEnrollById(8)" class="bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Enroll</button></div>
+              </div>
+            </div>
+            <div class="border border-gray-100 rounded-xl overflow-hidden card-hover cursor-pointer" onclick="openCourse(9)">
+              <img src="https://images.unsplash.com/photo-1563986768609-322da13575f3?w=400&h=120&fit=crop" class="w-full h-28 object-cover"/>
+              <div class="p-3"><p class="font-bold text-xs text-gray-800 mb-1">Ethical Hacking Masterclass</p><p class="text-xs text-gray-400 mb-2">By Ravi Shankar</p>
+                <div class="flex items-center justify-between"><span class="text-purple-700 font-black text-sm">₹1,599</span><button onclick="event.stopPropagation();handleEnrollById(9)" class="bg-purple-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg">Enroll</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CART -->
+      <div id="dash-cart" class="dash-panel fade-up">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h2 class="font-black text-gray-800 text-base mb-4">🛒 Cart</h2>
+          <div class="space-y-3 mb-5">
+            <div class="flex items-center gap-4 border border-gray-100 rounded-xl p-3">
+              <img src="https://images.unsplash.com/photo-1605745341112-85968b19335b?w=80&h=60&fit=crop" class="w-16 h-12 rounded-lg object-cover shrink-0"/>
+              <div class="flex-1"><p class="font-bold text-sm text-gray-800">Docker & Kubernetes</p><p class="text-xs text-gray-400">By Alex Kumar</p></div>
+              <p class="font-black text-purple-700">₹1,399</p>
+              <button class="text-red-400 hover:text-red-600 text-lg font-bold">✕</button>
+            </div>
+            <div class="flex items-center gap-4 border border-gray-100 rounded-xl p-3">
+              <img src="https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=80&h=60&fit=crop" class="w-16 h-12 rounded-lg object-cover shrink-0"/>
+              <div class="flex-1"><p class="font-bold text-sm text-gray-800">Data Analytics with Power BI</p><p class="text-xs text-gray-400">By Meera Iyer</p></div>
+              <p class="font-black text-purple-700">₹1,299</p>
+              <button class="text-red-400 hover:text-red-600 text-lg font-bold">✕</button>
+            </div>
+          </div>
+          <div class="bg-purple-50 rounded-xl p-4 flex items-center justify-between">
+            <div><p class="text-sm text-gray-500">Total (2 courses)</p><p class="text-2xl font-black text-purple-700">₹2,698</p></div>
+            <button onclick="handleEnroll()" class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-6 py-3 rounded-xl text-sm transition">Checkout →</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROFILE -->
+      <div id="dash-profile" class="dash-panel fade-up">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h2 class="font-black text-gray-800 text-base mb-5">⚙️ Profile Settings</h2>
+          <div class="flex items-center gap-5 mb-6 pb-5 border-b border-gray-100">
+            <div class="w-16 h-16 bg-gradient-to-br from-purple-600 to-indigo-600 rounded-xl flex items-center justify-center text-white font-black text-2xl">J</div>
+            <div><p class="font-bold text-gray-800">Jane Doe</p><p class="text-xs text-gray-400">jane@skillbloom.com</p><button class="mt-2 text-xs text-purple-700 font-semibold border border-purple-200 px-3 py-1 rounded-lg hover:bg-purple-50 transition">Change Photo</button></div>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div><label class="text-xs font-semibold text-gray-500 block mb-1">First Name</label><input type="text" value="Jane" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"/></div>
+            <div><label class="text-xs font-semibold text-gray-500 block mb-1">Last Name</label><input type="text" value="Doe" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"/></div>
+            <div><label class="text-xs font-semibold text-gray-500 block mb-1">Email</label><input type="email" value="jane@skillbloom.com" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"/></div>
+            <div><label class="text-xs font-semibold text-gray-500 block mb-1">Phone</label><input type="text" value="+91 98765 43210" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"/></div>
+            <div><label class="text-xs font-semibold text-gray-500 block mb-1">City</label><input type="text" value="Bengaluru" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"/></div>
+            <div><label class="text-xs font-semibold text-gray-500 block mb-1">State</label><input type="text" value="Karnataka" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400"/></div>
+            <div class="sm:col-span-2"><label class="text-xs font-semibold text-gray-500 block mb-1">Bio</label><textarea rows="3" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-purple-400 resize-none">Passionate learner exploring web development and data science.</textarea></div>
+          </div>
+          <div class="mt-5 flex gap-3">
+            <button class="bg-purple-700 hover:bg-purple-800 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition">Save Changes</button>
+            <button class="border border-gray-200 text-gray-500 px-6 py-2.5 rounded-xl text-sm hover:bg-gray-50 transition">Cancel</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- HELP -->
+      <div id="dash-help" class="dash-panel fade-up">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <h2 class="font-black text-gray-800 text-base mb-4">❓ Help & Support</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+            <div class="bg-purple-50 rounded-xl p-4 text-center cursor-pointer hover:bg-purple-100 transition" onclick="toggleChat()"><div class="text-3xl mb-2">💬</div><p class="font-bold text-sm text-gray-800">Live Chat</p><p class="text-xs text-gray-400 mt-1">Chat with TutorAI</p></div>
+            <div class="bg-blue-50 rounded-xl p-4 text-center cursor-pointer hover:bg-blue-100 transition"><div class="text-3xl mb-2">📧</div><p class="font-bold text-sm text-gray-800">Email Support</p><p class="text-xs text-gray-400 mt-1">support@skillbloom.com</p></div>
+            <div class="bg-green-50 rounded-xl p-4 text-center cursor-pointer hover:bg-green-100 transition"><div class="text-3xl mb-2">📞</div><p class="font-bold text-sm text-gray-800">Call Us</p><p class="text-xs text-gray-400 mt-1">+91 1800-SKILLBLOOM</p></div>
+          </div>
+          <h3 class="font-bold text-gray-700 text-sm mb-3">Frequently Asked Questions</h3>
+          <div class="space-y-2">
+            <details class="border border-gray-100 rounded-xl p-4 cursor-pointer"><summary class="font-semibold text-sm text-gray-800">How do I access my enrolled courses?</summary><p class="text-xs text-gray-500 mt-2">Go to Dashboard → My Learning to see all your enrolled courses.</p></details>
+            <details class="border border-gray-100 rounded-xl p-4 cursor-pointer"><summary class="font-semibold text-sm text-gray-800">How does the 3-day free trial work?</summary><p class="text-xs text-gray-500 mt-2">Select any of the 4 free courses and click Enroll. Full access for 3 days, no credit card.</p></details>
+            <details class="border border-gray-100 rounded-xl p-4 cursor-pointer"><summary class="font-semibold text-sm text-gray-800">Can I get a refund?</summary><p class="text-xs text-gray-500 mt-2">Yes, 7-day money-back guarantee on all paid courses. Email support@skillbloom.com.</p></details>
+            <details class="border border-gray-100 rounded-xl p-4 cursor-pointer"><summary class="font-semibold text-sm text-gray-800">How do I get my certificate?</summary><p class="text-xs text-gray-500 mt-2">Complete all lessons and pass the final exam. Certificate appears in My Learning automatically.</p></details>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTIFICATIONS -->
+      <div id="dash-notifications" class="dash-panel fade-up">
+        <div class="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
+          <div class="flex items-center justify-between mb-4">
+            <h2 class="font-black text-gray-800 text-base">🔔 Notifications</h2>
+            <button class="text-xs text-purple-700 font-semibold hover:underline">Mark all read</button>
+          </div>
+          <div class="space-y-3">
+            <div class="flex items-start gap-3 bg-purple-50 rounded-xl p-3"><div class="w-9 h-9 bg-purple-200 rounded-full flex items-center justify-center text-sm shrink-0">🎉</div><div class="flex-1"><p class="text-sm font-semibold text-gray-800">Course Completed!</p><p class="text-xs text-gray-500">You completed Machine Learning A-Z. Download your certificate now.</p><p class="text-xs text-purple-500 mt-1">2 hours ago</p></div><span class="w-2 h-2 bg-purple-600 rounded-full mt-1 shrink-0"></span></div>
+            <div class="flex items-start gap-3 bg-red-50 rounded-xl p-3"><div class="w-9 h-9 bg-red-200 rounded-full flex items-center justify-center text-sm shrink-0">🔴</div><div class="flex-1"><p class="text-sm font-semibold text-gray-800">Live Class Starting Soon</p><p class="text-xs text-gray-500">JS Deep Dive with John Smith starts in 1 hour.</p><p class="text-xs text-red-500 mt-1">Today, 5:00 PM</p></div><span class="w-2 h-2 bg-red-500 rounded-full mt-1 shrink-0"></span></div>
+            <div class="flex items-start gap-3 rounded-xl p-3 border border-gray-100"><div class="w-9 h-9 bg-gray-200 rounded-full flex items-center justify-center text-sm shrink-0">👤</div><div class="flex-1"><p class="text-sm font-semibold text-gray-800">New Course Published</p><p class="text-xs text-gray-500">Administration: "Advanced React Patterns" is now available.</p><p class="text-xs text-gray-400 mt-1">1 month ago</p></div></div>
+            <div class="flex items-start gap-3 rounded-xl p-3 border border-gray-100"><div class="w-9 h-9 bg-yellow-200 rounded-full flex items-center justify-center text-sm shrink-0">⏰</div><div class="flex-1"><p class="text-sm font-semibold text-gray-800">Exam Reminder</p><p class="text-xs text-gray-500">Web Dev Final Exam is on March 20. Start preparing now!</p><p class="text-xs text-gray-400 mt-1">3 days ago</p></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- end main panels -->
+  </div><!-- end flex -->
+</div><!-- end page-dashboard -->
+
+<!-- ===== LOGIN PAGE ===== -->
+<div id="page-login" class="page">
+  <div class="min-h-screen flex">
+    <div class="hidden md:flex w-1/2 bg-gradient-to-br from-gray-900 via-purple-950 to-gray-900 text-white flex-col justify-center px-12 relative overflow-hidden">
+      <div class="absolute inset-0" style="background:radial-gradient(ellipse at 30% 50%,rgba(109,40,217,.5) 0%,transparent 70%)"></div>
+      <div class="relative z-10">
+        <div class="flex items-center gap-3 mb-10">
+          <div class="w-10 h-10 bg-purple-600 rounded-xl flex items-center justify-center font-black text-sm">SB</div>
+          <span class="text-xl font-black">SkillBloom</span>
+        </div>
+        <h2 class="text-3xl font-black mb-4 leading-tight">Welcome back to your learning journey</h2>
+        <p class="text-purple-300 text-sm mb-8">Access 500+ courses, live classes, and TutorAI — all in one place.</p>
+        <div class="space-y-4">
+          <div class="flex items-center gap-3"><div class="w-8 h-8 bg-purple-700 rounded-lg flex items-center justify-center text-sm">🎓</div><p class="text-sm text-gray-300">500+ expert-led courses</p></div>
+          <div class="flex items-center gap-3"><div class="w-8 h-8 bg-purple-700 rounded-lg flex items-center justify-center text-sm">🤖</div><p class="text-sm text-gray-300">TutorAI — your personal AI tutor</p></div>
+          <div class="flex items-center gap-3"><div class="w-8 h-8 bg-purple-700 rounded-lg flex items-center justify-center text-sm">🎥</div><p class="text-sm text-gray-300">Live classes with top instructors</p></div>
+          <div class="flex items-center gap-3"><div class="w-8 h-8 bg-purple-700 rounded-lg flex items-center justify-center text-sm">📜</div><p class="text-sm text-gray-300">Industry-recognized certificates</p></div>
+        </div>
+      </div>
+    </div>
+    <div class="flex-1 flex items-center justify-center px-6 bg-gray-50">
+      <div class="w-full max-w-sm">
+        <div class="md:hidden flex items-center gap-2 mb-6 justify-center">
+          <div class="w-9 h-9 bg-purple-700 rounded-lg flex items-center justify-center text-white font-black text-sm">SB</div>
+          <span class="font-black text-purple-800 text-lg">SkillBloom</span>
+        </div>
+        <h2 class="text-2xl font-black text-gray-900 mb-1">Sign In</h2>
+        <p class="text-gray-400 text-sm mb-6">Don't have an account? <span onclick="showPage('register')" class="text-purple-700 font-semibold cursor-pointer hover:underline">Sign Up</span></p>
+        <div class="space-y-3 mb-4">
+          <div><label class="text-xs font-semibold text-gray-500 block mb-1">Email</label><input id="login-email" type="email" placeholder="you@skillbloom.com" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-400 bg-white"/></div>
+          <div><label class="text-xs font-semibold text-gray-500 block mb-1">Password</label><input id="login-pass" type="password" placeholder="••••••••" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-purple-400 bg-white" onkeydown="if(event.key==='Enter')doLogin()"/></div>
+        </div>
+        <button onclick="doLogin()" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm transition mb-4">Sign In →</button>
+        <div class="relative flex items-center gap-3 mb-4"><div class="flex-1 h-px bg-gray-200"></div><span class="text-xs text-gray-400">or try demo</span><div class="flex-1 h-px bg-gray-200"></div></div>
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="fillLogin('student@skillbloom.com','demo123')" class="border border-gray-200 rounded-xl py-2 text-xs font-semibold text-gray-600 hover:bg-purple-50 hover:border-purple-300 transition">👩‍🎓 Student</button>
+          <button onclick="fillLogin('instructor@skillbloom.com','demo123')" class="border border-gray-200 rounded-xl py-2 text-xs font-semibold text-gray-600 hover:bg-purple-50 hover:border-purple-300 transition">👨‍🏫 Instructor</button>
+          <button onclick="fillLogin('admin@skillbloom.com','demo123')" class="border border-gray-200 rounded-xl py-2 text-xs font-semibold text-gray-600 hover:bg-purple-50 hover:border-purple-300 transition">🛡️ Admin</button>
+        </div>
+        <p id="login-error" class="text-red-500 text-xs text-center mt-3 hidden">Invalid credentials. Try a demo account.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== REGISTER PAGE ===== -->
+<div id="page-register" class="page">
+  <div class="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10">
+    <div class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8">
+      <div class="flex items-center gap-2 mb-6 justify-center">
+        <div class="w-9 h-9 bg-purple-700 rounded-lg flex items-center justify-center text-white font-black text-sm">SB</div>
+        <span class="font-black text-purple-800 text-lg">SkillBloom</span>
+      </div>
+      <h2 class="text-2xl font-black text-gray-900 text-center mb-1">Create Account</h2>
+      <p class="text-gray-400 text-sm text-center mb-6">Already have an account? <span onclick="showPage('login')" class="text-purple-700 font-semibold cursor-pointer hover:underline">Sign In</span></p>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">First Name</label><input type="text" placeholder="Jane" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-purple-400"/></div>
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">Last Name</label><input type="text" placeholder="Doe" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-purple-400"/></div>
+      </div>
+      <div class="space-y-3 mb-4">
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">Email</label><input type="email" placeholder="you@skillbloom.com" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-purple-400"/></div>
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">Password</label><input type="password" placeholder="Min 8 characters" class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-purple-400"/></div>
+        <div><label class="text-xs font-semibold text-gray-500 block mb-1">I am a</label>
+          <select class="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:border-purple-400 bg-white">
+            <option>Student</option><option>Instructor</option><option>Corporate Learner</option>
+          </select>
+        </div>
+      </div>
+      <button onclick="setLoggedIn();showPage('dashboard')" class="w-full bg-purple-700 hover:bg-purple-800 text-white font-bold py-3 rounded-xl text-sm transition mb-3">Create Account →</button>
+      <p class="text-xs text-gray-400 text-center">By signing up you agree to our <span class="text-purple-700 cursor-pointer">Terms</span> and <span class="text-purple-700 cursor-pointer">Privacy Policy</span></p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== COURSE PLAYER ===== -->
+<div id="page-player" class="page">
+  <div class="flex min-h-screen bg-gray-900">
+    <div class="w-72 bg-gray-800 text-white shrink-0 hidden md:flex flex-col">
+      <div class="p-4 border-b border-gray-700">
+        <button onclick="showPage('dashboard')" class="text-gray-400 hover:text-white text-xs mb-2 flex items-center gap-1">← Back to Dashboard</button>
+        <h3 id="player-course-name" class="font-bold text-sm">Web Development Bootcamp</h3>
+        <div class="w-full bg-gray-700 rounded-full h-1.5 mt-2"><div class="bg-purple-500 h-1.5 rounded-full" style="width:50%"></div></div>
+        <p class="text-xs text-gray-400 mt-1">6/12 lessons • 50%</p>
+      </div>
+      <div class="flex-1 overflow-y-auto p-2" id="player-lesson-list"></div>
+    </div>
+    <div class="flex-1 flex flex-col">
+      <div class="bg-gray-900 flex-1 flex items-center justify-center p-4">
+        <div id="player-thumb" class="w-full max-w-3xl aspect-video bg-gray-800 rounded-xl overflow-hidden relative cursor-pointer group" onclick="openYoutube(currentVideoId)">
+          <img id="player-img" src="https://img.youtube.com/vi/jS4aFq5-91M/maxresdefault.jpg" class="w-full h-full object-cover"/>
+          <div class="absolute inset-0 bg-black/40 flex items-center justify-center group-hover:bg-black/50 transition">
+            <div class="w-20 h-20 bg-red-600 rounded-full flex items-center justify-center shadow-2xl group-hover:scale-110 transition">
+              <span class="text-white text-3xl ml-1">▶</span>
+            </div>
+          </div>
+          <div class="absolute bottom-4 left-4 bg-black/70 text-white text-xs px-3 py-1.5 rounded-lg flex items-center gap-2">
+            <span class="text-red-400 font-bold">▶ YouTube</span> Click to watch on YouTube
+          </div>
+        </div>
+      </div>
+      <div class="bg-white p-5 border-t border-gray-200">
+        <div class="max-w-3xl mx-auto flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h2 id="player-title" class="font-bold text-gray-800 text-base">Lesson 1</h2>
+            <p id="player-subtitle" class="text-xs text-gray-400 mt-0.5">Web Development Bootcamp</p>
+          </div>
+          <div class="flex gap-2">
+            <button onclick="openYoutube(currentVideoId)" class="bg-red-600 hover:bg-red-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition flex items-center gap-1">▶ Watch on YouTube</button>
+            <button onclick="markDone()" class="bg-green-600 hover:bg-green-700 text-white font-bold px-4 py-2 rounded-xl text-xs transition">✓ Mark Done</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== TUTORAI CHAT WIDGET ===== -->
+<div id="chat-widget" class="fixed bottom-5 right-5 z-50">
+  <div id="chat-box" class="hidden w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 flex-col overflow-hidden mb-3" style="height:420px">
+    <div class="bg-gradient-to-r from-purple-700 to-indigo-700 text-white px-4 py-3 flex items-center gap-3">
+      <div class="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center text-sm">🎓</div>
+      <div class="flex-1"><p class="font-bold text-sm">TutorAI</p><p class="text-xs text-purple-200">Your personal AI tutor</p></div>
+      <button onclick="toggleChat()" class="text-white/70 hover:text-white text-lg font-bold leading-none">✕</button>
+    </div>
+    <div id="chat-messages" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2 bg-gray-50">
+      <div class="chat-ai text-xs p-3 max-w-xs shadow-sm">👋 Hi! I'm TutorAI. Ask me anything about your courses, exams, or learning path!</div>
+    </div>
+    <div class="p-3 bg-white border-t border-gray-100 flex gap-2">
+      <input id="chat-input" type="text" placeholder="Ask TutorAI..." class="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-purple-400" onkeydown="if(event.key==='Enter')sendChat()"/>
+      <button onclick="sendChat()" class="bg-purple-700 hover:bg-purple-800 text-white px-3 py-2 rounded-xl text-xs font-bold transition">Send</button>
+    </div>
+  </div>
+  <button onclick="toggleChat()" class="w-14 h-14 bg-gradient-to-br from-purple-700 to-indigo-700 rounded-full shadow-2xl flex items-center justify-center text-2xl hover:scale-110 transition-transform" title="Chat with TutorAI">🎓</button>
+</div>
